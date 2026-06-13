@@ -46,8 +46,8 @@ jobs:
         run: npm run test
         working-directory: apps/api
 
-      - name: Run migrations
-        run: npx prisma migrate deploy
+      - name: Push schema to test database
+        run: npx prisma db push --accept-data-loss
         working-directory: apps/api
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mantys_kanban_test
