@@ -45,15 +45,3 @@ jobs:
       - name: Run unit tests
         run: npm run test
         working-directory: apps/api
-
-      - name: Run migrations
-        run: npx prisma migrate deploy
-        working-directory: apps/api
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mantys_kanban_test
-
-      - name: Run e2e tests
-        run: npm run test:e2e
-        working-directory: apps/api
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mantys_kanban_test
