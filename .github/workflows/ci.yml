@@ -1,7 +1,5 @@
 name: CI
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
 on:
   push:
     branches:
@@ -10,75 +8,52 @@ on:
     branches:
       - main
 
-  workflow_dispatch:
-
 jobs:
-  trigger-circleci:
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Trigger deploy on circle
-        id: TriggerCircleId
-        uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.0.5
+
+    services:
+      postgres:
+        image: postgres:16-alpine
         env:
-          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantys_kanban_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-  # build:
-  # runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-  # steps:
-  # - name: Checkout code
-  # uses: actions/checkout@v2
-  # Checks out the code from the repository
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
 
-  #- name: Set up Node.js
-  # uses: actions/setup-node@v2
-  # with:
-  # node-version: 19.8.1
-  # Sets up the Node.js environment with the specified version
+      - name: Install dependencies
+        run: npm ci
 
-  # - name: Install dependencies
-  # run: npm ci
-  # Installs project dependencies using npm
+      - name: Generate Prisma client
+        run: npm run prisma generate
+        working-directory: apps/api
 
-  # - name: Run unit tests
-  # run: npm run test
-  # Executes the test command to run unit tests
+      - name: Run unit tests
+        run: npm run test
+        working-directory: apps/api
 
-  # - name: Copy .env.example to .env
-  # run: cp .env.example .env
-  # Copy .env.example to .env
-  # - name: Set up MongoDB
-  # uses: supercharge/mongodb-github-action@1.8.0
-  # with:
-  # mongodb-version: 6.0
-  # Set up MongoDB version 6.0
+      - name: Run migrations
+        run: npx prisma migrate deploy
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mantys_kanban_test
 
-  # - name: Run e2e tests
-  # run: npm run test:e2e
-  # Executes the test command to run e2e tests
-
-  # Deploy-Production:
-  # needs: build
-  # runs-on: ubuntu-latest
-  # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  # steps:
-  # - name: Checkout code
-  # uses: actions/checkout@v2
-
-  # - name: Set up Node.js
-  # uses: actions/setup-node@v2
-  # with:
-  # node-version: 18.15.0
-  # Sets up the Node.js environment with the specified version
-
-  # - name: Install Vercel CLI
-  # run: npm install --global vercel@latest
-
-  # - name: Pull Vercel Environment Information
-  # run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-  # - name: Build Project Artifacts
-  # run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-  # - name: Deploy Project Artifacts to Vercel
-  # run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Run e2e tests
+        run: npm run test:e2e
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mantys_kanban_test
