@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TasksModule } from './tasks/tasks.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -10,7 +11,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       isGlobal: true,
       envFilePath: ['.env', '.env.test'],
     }),
-    // MongoDB configuration and connection
+    // Prisma / PostgreSQL (Slice 1 — additive, MongoDB removed in Slice 2)
+    PrismaModule,
+    // MongoDB configuration and connection (removed in Slice 2)
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
