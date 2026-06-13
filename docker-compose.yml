@@ -29,6 +29,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mantys}:${POSTGRES_PASSWORD:-mantys}@postgres:5432/${POSTGRES_DB:-mantys_kanban}
     networks:
       - mantys-network
 
