@@ -1,30 +1,30 @@
-import { IsString, IsOptional, IsBoolean, IsNotEmpty } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import { Priority, TaskStatus } from '@prisma/client';
 
 export class CreateTaskDto {
-  @ApiProperty({
-    example: 'Task Title',
-    description: 'The title of the task',
-  })
   @IsString()
-  @IsNotEmpty()
   title: string;
 
-  @ApiProperty({
-    example: 'Task Description',
-    description: 'The description of the task',
-    required: false,
-  })
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 
-  @ApiProperty({
-    example: true,
-    description: 'Indicates if the task is done',
-    required: false,
-  })
-  @IsBoolean()
   @IsOptional()
-  done?: boolean;
+  @IsEnum(Priority)
+  priority?: Priority;
+
+  @IsOptional()
+  @IsEnum(TaskStatus)
+  status?: TaskStatus;
+
+  @IsOptional()
+  @IsDateString()
+  deadline?: string;
+
+  @IsOptional()
+  @IsString()
+  assigneeId?: string;
+
+  @IsString()
+  projectId: string;
 }
