@@ -41,3 +41,9 @@ lerna-debug.log*
 # data
 /data
 .vercel
+
+# web
+apps/web/.next/
+apps/web/node_modules/
+apps/web/.env.local
+apps/web/next-env.d.ts
