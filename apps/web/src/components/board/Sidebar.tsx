@@ -53,7 +53,7 @@ export default function Sidebar({ projects: initialProjects, activeProjectId }: 
           <button
             onClick={openCreate}
             title="New project"
-            className="w-5 h-5 flex items-center justify-center text-[#52525b] hover:text-[#a1a1aa] transition-colors text-base leading-none"
+            className="w-5 h-5 flex items-center justify-center text-[#71717a] hover:text-[#e4e4e7] transition-colors text-base leading-none"
           >
             +
           </button>
@@ -86,7 +86,7 @@ export default function Sidebar({ projects: initialProjects, activeProjectId }: 
               <button
                 onClick={() => openEdit(p)}
                 title="Edit project"
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-[#52525b] hover:text-[#a1a1aa] opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-[#71717a] hover:text-[#e4e4e7] opacity-0 group-hover:opacity-100 transition-opacity text-xs"
               >
                 ✎
               </button>
