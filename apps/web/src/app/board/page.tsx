@@ -4,7 +4,7 @@ import KanbanBoard from '@/components/board/KanbanBoard'
 import Sidebar from '@/components/board/Sidebar'
 
 interface JwtProfile {
-  sub: string
+  id: string
   email: string
   role: string
 }
@@ -36,7 +36,7 @@ export default async function BoardPage({
 
   // Resolve the current user's full record from the users list using the JWT sub (id)
   const currentUser = profile
-    ? (users.find((u) => u.id === profile.sub) ?? { name: undefined, email: profile.email })
+    ? (users.find((u) => u.id === profile.id) ?? { name: undefined, email: profile.email })
     : null
 
   return (
