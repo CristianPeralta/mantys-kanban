@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Role } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -17,7 +18,7 @@ export class AuthService {
    * Returns the created user without the password field.
    */
   async register(dto: CreateUserDto) {
-    return this.usersService.create(dto);
+    return this.usersService.create({ ...dto, role: Role.MEMBER });
   }
 
   /**

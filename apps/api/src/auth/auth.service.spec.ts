@@ -10,6 +10,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Role } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -66,9 +67,30 @@ describe('AuthService', () => {
 
       const result = await service.register(dto);
 
-      expect(mockUsersService.create).toHaveBeenCalledWith(dto);
+      expect(mockUsersService.create).toHaveBeenCalledWith({ ...dto, role: Role.MEMBER });
       expect(result).toEqual(createdUser);
       expect((result as any).password).toBeUndefined();
+    });
+
+    it('should override role to MEMBER even when caller supplies role OWNER', async () => {
+      const dtoWithOwner: CreateUserDto = {
+        email: 'bob@example.com',
+        password: 'secret123',
+        name: 'Bob',
+        role: Role.OWNER,
+      };
+      const createdUser = {
+        id: 'user-2',
+        email: dtoWithOwner.email,
+        name: dtoWithOwner.name,
+        role: 'MEMBER',
+        createdAt: new Date(),
+      };
+      mockUsersService.create.mockResolvedValue(createdUser);
+
+      await service.register(dtoWithOwner);
+
+      expect(mockUsersService.create).toHaveBeenCalledWith({ ...dtoWithOwner, role: Role.MEMBER });
     });
 
     it('should propagate errors from usersService.create', async () => {
