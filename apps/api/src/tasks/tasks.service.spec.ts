@@ -43,7 +43,10 @@ describe('TasksService', () => {
 
       const result = await service.create(dto as any);
 
-      expect(mockPrisma.task.create).toHaveBeenCalledWith({ data: dto });
+      expect(mockPrisma.task.create).toHaveBeenCalledWith({
+        data: dto,
+        include: { assignee: { select: { id: true, name: true, email: true } } },
+      });
       expect(result).toEqual(created);
     });
   });

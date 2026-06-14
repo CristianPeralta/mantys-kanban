@@ -45,10 +45,12 @@ export default async function BoardPage({
     <div className="flex h-screen bg-[#0d0d0f]">
       <Sidebar projects={projects} activeProjectId={projectId} />
       <KanbanBoard
+        key={projectId ?? 'all'}
         initialTasks={tasks}
         projects={projects}
         users={users}
         currentUser={currentUser}
+        activeProjectId={projectId}
       />
     </div>
   )
