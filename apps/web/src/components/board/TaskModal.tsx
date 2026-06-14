@@ -34,6 +34,7 @@ interface Props {
   mode: 'create' | 'edit'
   task?: Task
   columnStatus?: TaskStatus
+  activeProjectId?: string
   projects: Project[]
   users: User[]
   onClose: () => void
@@ -50,6 +51,7 @@ export default function TaskModal({
   mode,
   task,
   columnStatus,
+  activeProjectId,
   projects,
   users,
   onClose,
@@ -57,7 +59,7 @@ export default function TaskModal({
   onDelete,
 }: Props) {
   const defaultStatus = task?.status ?? columnStatus ?? TaskStatus.BACKLOG
-  const defaultProjectId = task?.projectId ?? projects[0]?.id ?? ''
+  const defaultProjectId = task?.projectId ?? activeProjectId ?? projects[0]?.id ?? ''
 
   const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
@@ -233,22 +235,24 @@ export default function TaskModal({
             </div>
           </div>
 
-          {/* Project */}
-          <div>
-            <label className={labelClass}>Project *</label>
-            <select
-              className={inputClass}
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-            >
-              <option value="">Select project</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Project — only shown when viewing all projects */}
+          {!activeProjectId && (
+            <div>
+              <label className={labelClass}>Project *</label>
+              <select
+                className={inputClass}
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+              >
+                <option value="">Select project</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {error && (
             <p className="text-xs text-[#f87171] bg-[#1f0606] border border-[#450a0a] rounded-md px-3 py-2">

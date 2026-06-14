@@ -50,6 +50,7 @@ export default async function BoardPage({
         projects={projects}
         users={users}
         currentUser={currentUser}
+        activeProjectId={projectId}
       />
     </div>
   )

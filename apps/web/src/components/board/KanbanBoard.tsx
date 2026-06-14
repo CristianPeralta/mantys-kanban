@@ -60,9 +60,10 @@ interface Props {
   projects: Project[]
   users: User[]
   currentUser: { name?: string; email?: string } | null
+  activeProjectId?: string
 }
 
-export default function KanbanBoard({ initialTasks, projects, users, currentUser }: Props) {
+export default function KanbanBoard({ initialTasks, projects, users, currentUser, activeProjectId }: Props) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [dragError, setDragError] = useState(false)
@@ -291,6 +292,7 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
           mode={modalState.mode}
           task={modalState.task}
           columnStatus={modalState.columnStatus}
+          activeProjectId={activeProjectId}
           projects={projects}
           users={users}
           onClose={closeModal}
