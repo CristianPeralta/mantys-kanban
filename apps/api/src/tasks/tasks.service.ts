@@ -1,57 +1,50 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Task } from '../schemas/task.schema';
-import { Model } from 'mongoose';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
-  constructor(@InjectModel(Task.name) private taskModel: Model<Task>) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Retrieves all tasks.
-   * @returns A list of tasks.
-   */
-  async findAll() {
-    return this.taskModel.find();
+  create(dto: CreateTaskDto) {
+    return this.prisma.task.create({ data: dto });
   }
 
-  /**
-   * Creates a new task.
-   * @param task The task data.
-   * @returns The created task.
-   */
-  async create(task: CreateTaskDto) {
-    const newTask = new this.taskModel(task);
-    return newTask.save();
+  findAll() {
+    return this.prisma.task.findMany();
   }
 
-  /**
-   * Finds a task by its ID.
-   * @param id The task ID.
-   * @returns The found task, or `null` if not found.
-   */
-  async findOne(id: string) {
-    return this.taskModel.findById(id);
+  findOne(id: string) {
+    return this.prisma.task.findUnique({ where: { id } });
   }
 
-  /**
-   * Deletes a task by its ID.
-   * @param id The task ID.
-   * @returns The deleted task, or `null` if not found.
-   */
-  async delete(id: string) {
-    return this.taskModel.findByIdAndDelete(id);
+  async update(id: string, dto: UpdateTaskDto) {
+    try {
+      return await this.prisma.task.update({ where: { id }, data: dto });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        return null;
+      }
+      throw e;
+    }
   }
 
-  /**
-   * Updates a task by its ID.
-   * @param id The task ID.
-   * @param task The updated task data.
-   * @returns The updated task, or `null` if not found.
-   */
-  async update(id: string, task: UpdateTaskDto) {
-    return this.taskModel.findByIdAndUpdate(id, task, { new: true });
+  async remove(id: string) {
+    try {
+      return await this.prisma.task.delete({ where: { id } });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        return null;
+      }
+      throw e;
+    }
   }
 }
