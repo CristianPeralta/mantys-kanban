@@ -1,0 +1,14 @@
+# Production overrides — must be used with the base file:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+version: '3.9'
+services:
+  api:
+    image: ghcr.io/cristianperalta/mantys-kanban/api:latest
+    restart: unless-stopped
+
+  web:
+    image: ghcr.io/cristianperalta/mantys-kanban/web:latest
+    restart: unless-stopped
+
+  postgres:
+    restart: unless-stopped
