@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import type { Task, Project, User } from '@mantys/types'
 import KanbanBoard from '@/components/board/KanbanBoard'
 import Sidebar from '@/components/board/Sidebar'
@@ -34,7 +35,8 @@ export default async function BoardPage({
     fetchWithAuth<JwtProfile>('/auth/profile', token).catch(() => null),
   ])
 
-  // Resolve the current user's full record from the users list using the JWT sub (id)
+  if (projects.length === 0) redirect('/projects/new')
+
   const currentUser = profile
     ? (users.find((u) => u.id === profile.id) ?? { name: undefined, email: profile.email })
     : null
