@@ -19,10 +19,13 @@ import { TaskStatus, Priority } from '@mantys/types'
 import KanbanColumn from './KanbanColumn'
 import TaskCard from './TaskCard'
 import TaskModal from './TaskModal'
+import DateFilterPill from './DateFilterPill'
 import { logoutAction } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getInitials } from './TaskCard'
+import { matchesDateFilter } from '@/lib/dateUtils'
+import type { DateFilter } from '@/lib/dateUtils'
 
 const COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: TaskStatus.BACKLOG, label: 'Backlog' },
@@ -70,6 +73,7 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
   const [modalState, setModalState] = useState<ModalState>({ open: false, mode: 'create' })
   const [activeAssignee, setActiveAssignee] = useState<string | null>(null)
   const [activePriority, setActivePriority] = useState<Priority | null>(null)
+  const [activeDateFilter, setActiveDateFilter] = useState<DateFilter>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -88,7 +92,8 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
   const filteredTasks = tasks.filter(
     (t) =>
       (!activeAssignee || t.assignee?.id === activeAssignee) &&
-      (!activePriority || t.priority === activePriority),
+      (!activePriority || t.priority === activePriority) &&
+      matchesDateFilter(t.deadline as string | undefined, activeDateFilter),
   )
 
   const handleDragStart = useCallback(
@@ -253,6 +258,11 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
             </button>
           ))}
         </div>
+
+        <div className="w-px h-4 bg-[#27272b] flex-shrink-0" />
+
+        {/* Date filter */}
+        <DateFilterPill value={activeDateFilter} onChange={setActiveDateFilter} />
       </div>
 
       {dragError && (
