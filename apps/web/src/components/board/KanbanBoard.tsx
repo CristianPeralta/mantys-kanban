@@ -193,14 +193,14 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
       <div className="flex items-center gap-4 px-5 py-2.5 border-b border-[#1d1d21] bg-[#0d0d0f] flex-shrink-0 overflow-x-auto">
         {/* Assignee filter */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-xs text-[#52525b] font-medium">Assignee:</span>
+          <span className="text-xs text-[#71717a] font-medium">Assignee:</span>
           <button
             onClick={() => setActiveAssignee(null)}
             className={cn(
               'text-xs px-2.5 py-1 rounded-full transition-colors',
               activeAssignee === null
                 ? 'bg-indigo-600 text-white'
-                : 'bg-[#1d1d21] text-[#71717a] hover:text-[#a1a1aa]',
+                : 'bg-[#27272b] text-[#a1a1aa] hover:text-[#e4e4e7] hover:bg-[#3f3f46]',
             )}
           >
             All
@@ -213,7 +213,7 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
                 'text-xs px-2.5 py-1 rounded-full transition-colors',
                 activeAssignee === u.id
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-[#1d1d21] text-[#71717a] hover:text-[#a1a1aa]',
+                  : 'bg-[#27272b] text-[#a1a1aa] hover:text-[#e4e4e7] hover:bg-[#3f3f46]',
               )}
             >
               {getInitials(u.name, u.email)}
@@ -225,14 +225,14 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
 
         {/* Priority filter */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-xs text-[#52525b] font-medium">Priority:</span>
+          <span className="text-xs text-[#71717a] font-medium">Priority:</span>
           <button
             onClick={() => setActivePriority(null)}
             className={cn(
               'text-xs px-2.5 py-1 rounded-full transition-colors',
               activePriority === null
                 ? 'bg-indigo-600 text-white'
-                : 'bg-[#1d1d21] text-[#71717a] hover:text-[#a1a1aa]',
+                : 'bg-[#27272b] text-[#a1a1aa] hover:text-[#e4e4e7] hover:bg-[#3f3f46]',
             )}
           >
             All
@@ -245,7 +245,7 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
                 'text-xs px-2.5 py-1 rounded-full transition-colors',
                 activePriority === p
                   ? PRIORITY_PILL[p]
-                  : 'bg-[#1d1d21] text-[#71717a] hover:text-[#a1a1aa]',
+                  : 'bg-[#27272b] text-[#a1a1aa] hover:text-[#e4e4e7] hover:bg-[#3f3f46]',
               )}
             >
               {p}

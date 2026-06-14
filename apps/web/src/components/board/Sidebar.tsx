@@ -49,7 +49,7 @@ export default function Sidebar({ projects: initialProjects, activeProjectId }: 
     <>
       <aside className="w-56 flex-shrink-0 bg-[#101013] border-r border-[#1d1d21] flex flex-col">
         <div className="px-4 py-4 border-b border-[#1d1d21] flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-widest text-[#52525b]">Projects</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#71717a]">Projects</span>
           <button
             onClick={openCreate}
             title="New project"
@@ -65,7 +65,7 @@ export default function Sidebar({ projects: initialProjects, activeProjectId }: 
               'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors',
               !activeProjectId
                 ? 'bg-[#18181c] text-[#e4e4e7]'
-                : 'text-[#71717a] hover:bg-[#18181c] hover:text-[#a1a1aa]',
+                : 'text-[#a1a1aa] hover:bg-[#18181c] hover:text-[#e4e4e7]',
             )}
           >
             All projects
@@ -78,7 +78,7 @@ export default function Sidebar({ projects: initialProjects, activeProjectId }: 
                   'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors pr-8',
                   activeProjectId === p.id
                     ? 'bg-[#18181c] text-[#e4e4e7]'
-                    : 'text-[#71717a] hover:bg-[#18181c] hover:text-[#a1a1aa]',
+                    : 'text-[#a1a1aa] hover:bg-[#18181c] hover:text-[#e4e4e7]',
                 )}
               >
                 {p.name}
