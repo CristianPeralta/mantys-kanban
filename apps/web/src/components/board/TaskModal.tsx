@@ -91,7 +91,7 @@ export default function TaskModal({
         status,
         priority,
         assigneeId: assigneeId || undefined,
-        deadline: deadline || undefined,
+        deadline: deadline ? new Date(deadline).toISOString() : undefined,
         projectId,
       }
 
