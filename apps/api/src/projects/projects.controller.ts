@@ -7,11 +7,15 @@ import {
   Body,
   Param,
   HttpCode,
+  UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from '../dto/create-project.dto';
 import { UpdateProjectDto } from '../dto/update-project.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Projects')
 @Controller('projects')
@@ -61,14 +65,21 @@ export class ProjectsController {
   }
 
   /**
-   * Delete a project by ID
+   * Delete a project by ID — OWNER only
    */
   @ApiOperation({ summary: 'Delete a project by ID' })
   @ApiResponse({ status: 204, description: 'Project deleted' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({ status: 403, description: 'Caller is not an OWNER' })
   @ApiResponse({ status: 404, description: 'Project not found' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Req() req: any) {
+    if (req.user?.role !== 'OWNER') {
+      throw new ForbiddenException('Only OWNER can delete a project');
+    }
     return this.projectsService.remove(id);
   }
 }

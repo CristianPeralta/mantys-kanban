@@ -37,13 +37,16 @@ export default async function BoardPage({
 
   if (projects.length === 0) redirect('/projects/new')
 
+  const foundUser = profile ? users.find((u) => u.id === profile.id) : undefined
   const currentUser = profile
-    ? (users.find((u) => u.id === profile.id) ?? { name: undefined, email: profile.email })
+    ? (foundUser
+        ? { name: foundUser.name, email: foundUser.email, role: profile.role }
+        : { name: undefined, email: profile.email, role: profile.role })
     : null
 
   return (
     <div className="flex h-screen bg-[#0d0d0f]">
-      <Sidebar projects={projects} activeProjectId={projectId} />
+      <Sidebar projects={projects} activeProjectId={projectId} currentUserRole={profile?.role} />
       <KanbanBoard
         key={projectId ?? 'all'}
         initialTasks={tasks}

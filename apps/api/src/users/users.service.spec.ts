@@ -103,7 +103,7 @@ describe('UsersService', () => {
     it('should return all users without password', async () => {
       const users = [
         { id: 'user-1', email: 'a@example.com', name: 'Alice', role: 'MEMBER', createdAt: new Date() },
-        { id: 'user-2', email: 'b@example.com', name: 'Bob', role: 'ADMIN', createdAt: new Date() },
+        { id: 'user-2', email: 'b@example.com', name: 'Bob', role: 'MEMBER', createdAt: new Date() },
       ];
       mockPrismaUser.findMany.mockResolvedValue(users);
 
