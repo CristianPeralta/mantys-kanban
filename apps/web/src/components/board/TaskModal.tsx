@@ -6,6 +6,7 @@ import { Priority, TaskStatus } from '@mantys/types'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -143,6 +144,9 @@ export default function TaskModal({
           <DialogTitle className="text-[#e4e4e7] text-base">
             {mode === 'create' ? 'New Task' : 'Edit Task'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {mode === 'create' ? 'Fill in the fields to create a new task.' : 'Edit the task fields and save.'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-2">

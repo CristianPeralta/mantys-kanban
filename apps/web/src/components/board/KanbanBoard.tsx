@@ -261,6 +261,7 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
       )}
 
       <DndContext
+        id="kanban-dnd"
         sensors={sensors}
         collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
