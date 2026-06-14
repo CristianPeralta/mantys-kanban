@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -21,9 +22,10 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateUserDto) {
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
     try {
       return await this.prisma.user.create({
-        data: dto,
+        data: { ...dto, password: hashedPassword },
         select: USER_SELECT,
       });
     } catch (e) {
@@ -85,5 +87,15 @@ export class UsersService {
       }
       throw e;
     }
+  }
+
+  /**
+   * Find a user by email, including the password field.
+   * Intended for internal auth use only — do NOT expose via controllers.
+   */
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
   }
 }

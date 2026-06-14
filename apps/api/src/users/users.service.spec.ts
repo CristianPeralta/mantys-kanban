@@ -4,10 +4,12 @@
  * Unit tests using a mocked PrismaService.
  * No database connection required.
  * Password field is stripped from all GET responses.
+ * create() hashes password with bcrypt before persisting.
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
@@ -53,17 +55,25 @@ describe('UsersService', () => {
   });
 
   describe('create', () => {
-    it('should create a user and return without password', async () => {
-      const dto = { email: 'user@example.com', password: 'secret123', name: 'Alice' };
+    it('should hash the password and pass hashed value to Prisma', async () => {
+      const plainPassword = 'secret123';
+      const dto = { email: 'user@example.com', password: plainPassword, name: 'Alice' };
       const created = { id: 'user-1', email: dto.email, name: dto.name, role: 'MEMBER', createdAt: new Date() };
       mockPrismaUser.create.mockResolvedValue(created);
 
       const result = await service.create(dto as any);
 
-      expect(mockPrismaUser.create).toHaveBeenCalledWith({
-        data: dto,
-        select: selectedUserFields,
-      });
+      expect(mockPrismaUser.create).toHaveBeenCalledTimes(1);
+      const callArg = mockPrismaUser.create.mock.calls[0][0];
+
+      // The data passed to Prisma must NOT be the raw DTO (password must be hashed)
+      expect(callArg.data.password).not.toBe(plainPassword);
+      expect(callArg.data.email).toBe(dto.email);
+      expect(callArg.select).toEqual(selectedUserFields);
+
+      // The captured hashed password must be verifiable with bcrypt
+      expect(bcrypt.compareSync(plainPassword, callArg.data.password)).toBe(true);
+
       expect(result).toEqual(created);
       expect((result as any).password).toBeUndefined();
     });
@@ -199,6 +209,39 @@ describe('UsersService', () => {
       mockPrismaUser.delete.mockRejectedValue(genericError);
 
       await expect(service.remove('user-1')).rejects.toThrow('Database connection failed');
+    });
+  });
+
+  describe('findByEmail', () => {
+    it('should call prisma.user.findUnique with the given email and return the user including password', async () => {
+      const userWithPassword = {
+        id: 'user-1',
+        email: 'a@example.com',
+        name: 'Alice',
+        role: 'MEMBER',
+        createdAt: new Date(),
+        password: '$2b$10$hashedpassword',
+      };
+      mockPrismaUser.findUnique.mockResolvedValue(userWithPassword);
+
+      const result = await service.findByEmail('a@example.com');
+
+      expect(mockPrismaUser.findUnique).toHaveBeenCalledWith({
+        where: { email: 'a@example.com' },
+      });
+      expect(result).toEqual(userWithPassword);
+      expect((result as any).password).toBeDefined();
+    });
+
+    it('should return null when no user is found for the given email', async () => {
+      mockPrismaUser.findUnique.mockResolvedValue(null);
+
+      const result = await service.findByEmail('nonexistent@example.com');
+
+      expect(mockPrismaUser.findUnique).toHaveBeenCalledWith({
+        where: { email: 'nonexistent@example.com' },
+      });
+      expect(result).toBeNull();
     });
   });
 });
