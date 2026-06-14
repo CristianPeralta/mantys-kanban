@@ -1,45 +1,109 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Project } from '@mantys/types'
 import { cn } from '@/lib/utils'
+import ProjectModal from './ProjectModal'
 
 interface Props {
   projects: Project[]
   activeProjectId?: string
 }
 
-export default function Sidebar({ projects, activeProjectId }: Props) {
+export default function Sidebar({ projects: initialProjects, activeProjectId }: Props) {
+  const router = useRouter()
+  const [projects, setProjects] = useState<Project[]>(initialProjects)
+  const [modal, setModal] = useState<{ open: boolean; mode: 'create' | 'edit'; project?: Project }>({
+    open: false,
+    mode: 'create',
+  })
+
+  function openCreate() {
+    setModal({ open: true, mode: 'create' })
+  }
+
+  function openEdit(project: Project) {
+    setModal({ open: true, mode: 'edit', project })
+  }
+
+  function handleSave(saved: Project) {
+    setProjects((prev) => {
+      const exists = prev.find((p) => p.id === saved.id)
+      return exists ? prev.map((p) => (p.id === saved.id ? saved : p)) : [...prev, saved]
+    })
+    setModal({ open: false, mode: 'create' })
+    if (modal.mode === 'create') {
+      router.push(`/board?projectId=${saved.id}`)
+    }
+  }
+
+  function handleDelete(projectId: string) {
+    setProjects((prev) => prev.filter((p) => p.id !== projectId))
+    setModal({ open: false, mode: 'create' })
+    if (activeProjectId === projectId) router.push('/board')
+  }
+
   return (
-    <aside className="w-56 flex-shrink-0 bg-[#101013] border-r border-[#1d1d21] flex flex-col">
-      <div className="px-4 py-4 border-b border-[#1d1d21]">
-        <span className="text-xs font-semibold uppercase tracking-widest text-[#52525b]">Projects</span>
-      </div>
-      <nav className="flex-1 overflow-y-auto p-2">
-        <Link
-          href="/board"
-          className={cn(
-            'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors',
-            !activeProjectId
-              ? 'bg-[#18181c] text-[#e4e4e7]'
-              : 'text-[#71717a] hover:bg-[#18181c] hover:text-[#a1a1aa]',
-          )}
-        >
-          All projects
-        </Link>
-        {projects.map((p) => (
+    <>
+      <aside className="w-56 flex-shrink-0 bg-[#101013] border-r border-[#1d1d21] flex flex-col">
+        <div className="px-4 py-4 border-b border-[#1d1d21] flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#52525b]">Projects</span>
+          <button
+            onClick={openCreate}
+            title="New project"
+            className="w-5 h-5 flex items-center justify-center text-[#52525b] hover:text-[#a1a1aa] transition-colors text-base leading-none"
+          >
+            +
+          </button>
+        </div>
+        <nav className="flex-1 overflow-y-auto p-2">
           <Link
-            key={p.id}
-            href={`/board?projectId=${p.id}`}
+            href="/board"
             className={cn(
-              'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors mt-0.5',
-              activeProjectId === p.id
+              'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors',
+              !activeProjectId
                 ? 'bg-[#18181c] text-[#e4e4e7]'
                 : 'text-[#71717a] hover:bg-[#18181c] hover:text-[#a1a1aa]',
             )}
           >
-            {p.name}
+            All projects
           </Link>
-        ))}
-      </nav>
-    </aside>
+          {projects.map((p) => (
+            <div key={p.id} className="group relative mt-0.5">
+              <Link
+                href={`/board?projectId=${p.id}`}
+                className={cn(
+                  'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors pr-8',
+                  activeProjectId === p.id
+                    ? 'bg-[#18181c] text-[#e4e4e7]'
+                    : 'text-[#71717a] hover:bg-[#18181c] hover:text-[#a1a1aa]',
+                )}
+              >
+                {p.name}
+              </Link>
+              <button
+                onClick={() => openEdit(p)}
+                title="Edit project"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-[#52525b] hover:text-[#a1a1aa] opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+              >
+                ✎
+              </button>
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      {modal.open && (
+        <ProjectModal
+          mode={modal.mode}
+          project={modal.project}
+          onClose={() => setModal({ open: false, mode: 'create' })}
+          onSave={handleSave}
+          onDelete={handleDelete}
+        />
+      )}
+    </>
   )
 }
