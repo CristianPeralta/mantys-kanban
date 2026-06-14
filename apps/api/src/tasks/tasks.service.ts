@@ -12,12 +12,18 @@ export class TasksService {
     return this.prisma.task.create({ data: dto });
   }
 
-  findAll() {
-    return this.prisma.task.findMany();
+  findAll(projectId?: string) {
+    return this.prisma.task.findMany({
+      where: projectId ? { projectId } : {},
+      include: { assignee: { select: { id: true, name: true, email: true } } },
+    });
   }
 
   findOne(id: string) {
-    return this.prisma.task.findUnique({ where: { id } });
+    return this.prisma.task.findUnique({
+      where: { id },
+      include: { assignee: { select: { id: true, name: true, email: true } } },
+    });
   }
 
   async update(id: string, dto: UpdateTaskDto) {

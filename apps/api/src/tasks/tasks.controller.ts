@@ -6,6 +6,7 @@ import {
   Put,
   Body,
   Param,
+  Query,
   NotFoundException,
   HttpCode,
 } from '@nestjs/common';
@@ -28,8 +29,8 @@ export class TasksController {
     description: 'Returns an array of tasks',
   })
   @Get()
-  async findAll() {
-    return this.taskService.findAll();
+  async findAll(@Query('projectId') projectId?: string) {
+    return this.taskService.findAll(projectId);
   }
 
   /**
