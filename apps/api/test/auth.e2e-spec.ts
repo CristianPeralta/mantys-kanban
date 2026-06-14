@@ -77,14 +77,16 @@ describe('AuthController (e2e)', () => {
       await request(app.getHttpServer()).post('/auth/register').send(testUser);
     });
 
-    it('should return 200 with access_token on valid credentials', async () => {
+    it('should return 200 with accessToken and user on valid credentials', async () => {
       const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: testUser.email, password: testUser.password })
         .expect(HttpStatus.OK);
 
-      expect(res.body.access_token).toBeDefined();
-      expect(typeof res.body.access_token).toBe('string');
+      expect(res.body.accessToken).toBeDefined();
+      expect(typeof res.body.accessToken).toBe('string');
+      expect(res.body.user).toBeDefined();
+      expect(res.body.user.password).toBeUndefined();
     });
 
     it('should return 401 when password is wrong', async () => {
@@ -118,7 +120,7 @@ describe('AuthController (e2e)', () => {
       const loginRes = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: testUser.email, password: testUser.password });
-      accessToken = loginRes.body.access_token;
+      accessToken = loginRes.body.accessToken;
     });
 
     it('should return 200 with user data when valid token is provided', async () => {

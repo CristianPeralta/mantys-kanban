@@ -120,7 +120,7 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should call usersService.findByEmail, compare password, sign JWT and return access_token', async () => {
+    it('should call usersService.findByEmail, compare password, sign JWT and return accessToken with user', async () => {
       const dto: LoginDto = {
         email: 'alice@example.com',
         password: 'secret123',
@@ -144,7 +144,9 @@ describe('AuthService', () => {
         email: userWithPassword.email,
         role: userWithPassword.role,
       });
-      expect(result).toHaveProperty('access_token', 'signed-token');
+      expect(result).toHaveProperty('accessToken', 'signed-token');
+      expect(result).toHaveProperty('user');
+      expect((result as any).user.password).toBeUndefined();
     });
 
     it('should throw UnauthorizedException when login credentials are wrong', async () => {

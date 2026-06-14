@@ -41,15 +41,15 @@ export class AuthService {
   }
 
   /**
-   * Validate credentials and return a signed JWT access token.
+   * Validate credentials and return a signed JWT access token with user data.
    */
-  async login(dto: LoginDto): Promise<{ access_token: string }> {
+  async login(dto: LoginDto): Promise<{ accessToken: string; user: Record<string, unknown> }> {
     const user = await this.validateUser(dto.email, dto.password);
     const token = this.jwtService.sign({
       sub: user.id,
       email: user.email,
       role: user.role,
     });
-    return { access_token: token };
+    return { accessToken: token, user };
   }
 }
