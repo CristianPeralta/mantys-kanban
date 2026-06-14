@@ -9,7 +9,10 @@ export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(dto: CreateTaskDto) {
-    return this.prisma.task.create({ data: dto });
+    return this.prisma.task.create({
+      data: dto,
+      include: { assignee: { select: { id: true, name: true, email: true } } },
+    });
   }
 
   findAll(projectId?: string) {
