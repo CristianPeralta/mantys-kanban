@@ -9,7 +9,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
+  pointerWithin,
+  rectIntersection,
+  getFirstCollision,
+  type CollisionDetection,
 } from '@dnd-kit/core'
 import type { Task, Project, User } from '@mantys/types'
 import { TaskStatus, Priority } from '@mantys/types'
@@ -30,6 +33,13 @@ const COLUMNS: { id: TaskStatus; label: string }[] = [
 ]
 
 const VALID_STATUSES = new Set<string>(Object.values(TaskStatus))
+
+// Prefer pointer-within for empty columns; fall back to rect intersection
+const collisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args)
+  if (pointerCollisions.length > 0) return pointerCollisions
+  return rectIntersection(args)
+}
 
 const PRIORITY_PILL: Record<Priority, string> = {
   [Priority.A]: 'bg-[#1f0606] text-[#f87171] border border-[#450a0a]',
@@ -252,7 +262,7 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
