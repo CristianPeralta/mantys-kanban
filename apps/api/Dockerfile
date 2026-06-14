@@ -27,7 +27,7 @@ COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Prisma generated client + CLI assets from builder (safety net if postinstall is skipped)
 COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
