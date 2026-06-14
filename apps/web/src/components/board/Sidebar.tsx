@@ -40,9 +40,14 @@ export default function Sidebar({ projects: initialProjects, activeProjectId }: 
   }
 
   function handleDelete(projectId: string) {
-    setProjects((prev) => prev.filter((p) => p.id !== projectId))
+    const remaining = projects.filter((p) => p.id !== projectId)
+    setProjects(remaining)
     setModal({ open: false, mode: 'create' })
-    if (activeProjectId === projectId) router.push('/board')
+    if (remaining.length === 0) {
+      router.push('/projects/new')
+    } else if (activeProjectId === projectId) {
+      router.push('/board')
+    }
   }
 
   return (
