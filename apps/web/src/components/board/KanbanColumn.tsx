@@ -44,9 +44,11 @@ interface Props {
   id: TaskStatus
   label: string
   tasks: Task[]
+  onAddTask: (columnStatus: TaskStatus) => void
+  onEditTask: (task: Task) => void
 }
 
-export default function KanbanColumn({ id, label, tasks }: Props) {
+export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id })
   const styles = COLUMN_STYLES[id]
   const taskIds = tasks.map((t) => t.id)
@@ -59,17 +61,30 @@ export default function KanbanColumn({ id, label, tasks }: Props) {
           styles.header,
         )}
       >
-        <span className={cn('text-xs font-semibold uppercase tracking-[0.04em]', styles.label)}>
-          {label}
-        </span>
-        <span
+        <div className="flex items-center gap-2">
+          <span className={cn('text-xs font-semibold uppercase tracking-[0.04em]', styles.label)}>
+            {label}
+          </span>
+          <span
+            className={cn(
+              'text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center',
+              styles.badge,
+            )}
+          >
+            {tasks.length}
+          </span>
+        </div>
+        <button
+          onClick={() => onAddTask(id)}
           className={cn(
-            'text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center',
-            styles.badge,
+            'w-5 h-5 rounded flex items-center justify-center text-lg leading-none transition-opacity opacity-50 hover:opacity-100',
+            styles.label,
           )}
+          title="New task"
+          aria-label="New task"
         >
-          {tasks.length}
-        </span>
+          +
+        </button>
       </div>
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <div
@@ -81,7 +96,7 @@ export default function KanbanColumn({ id, label, tasks }: Props) {
           )}
         >
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={task} onClick={() => onEditTask(task)} />
           ))}
         </div>
       </SortableContext>
