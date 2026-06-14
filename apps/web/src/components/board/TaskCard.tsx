@@ -30,6 +30,7 @@ const PRIORITY_LABEL: Record<Priority, string> = {
 interface Props {
   task: Task
   isDragging?: boolean
+  onClick?: () => void
 }
 
 export function getInitials(name?: string | null, email?: string | null): string {
@@ -43,7 +44,7 @@ export function formatDeadline(date?: Date | string | null): string | null {
   return new Date(date).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })
 }
 
-export default function TaskCard({ task, isDragging = false }: Props) {
+export default function TaskCard({ task, isDragging = false, onClick }: Props) {
   const {
     attributes,
     listeners,
@@ -64,10 +65,12 @@ export default function TaskCard({ task, isDragging = false }: Props) {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={onClick}
       className={cn(
         'flex gap-2 bg-[#18181c] border border-[#27272b] rounded-lg p-2.5 cursor-grab active:cursor-grabbing transition-all select-none',
         (isDragging || isSortableDragging) && 'opacity-40 ring-1 ring-indigo-500/50',
         'hover:bg-[#1e1e23] hover:border-[#3f3f46]',
+        onClick && 'cursor-pointer',
       )}
     >
       <div className={cn('w-[3px] rounded-sm flex-shrink-0', PRIORITY_STRIP[task.priority])} />

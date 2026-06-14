@@ -7,6 +7,11 @@ async function bootstrap() {
   // Create the Nest application
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: process.env.WEB_URL || 'http://localhost:3001',
+    credentials: true,
+  });
+
   // Apply global validation pipe for request payload validation
   app.useGlobalPipes(new ValidationPipe());
 
