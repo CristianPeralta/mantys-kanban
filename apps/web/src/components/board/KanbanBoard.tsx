@@ -35,6 +35,7 @@ interface Props {
 export default function KanbanBoard({ initialTasks }: Props) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [dragError, setDragError] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -82,13 +83,15 @@ export default function KanbanBoard({ initialTasks }: Props) {
         if (!res.ok) throw new Error('PUT failed')
       } catch {
         setTasks(prev)
+        setDragError(true)
+        setTimeout(() => setDragError(false), 3000)
       }
     },
     [tasks],
   )
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <div className="relative flex flex-col flex-1 overflow-hidden">
       <header className="flex items-center justify-between px-6 h-[52px] bg-[#101013] border-b border-[#1d1d21] flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white">
@@ -113,6 +116,11 @@ export default function KanbanBoard({ initialTasks }: Props) {
         </div>
       </header>
 
+      {dragError && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-[#1f0606] border border-[#450a0a] text-[#f87171] text-xs font-medium shadow-lg">
+          Failed to move task — reverted
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
