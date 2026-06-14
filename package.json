@@ -16,6 +16,12 @@
     "test:web": "npm run test --workspace=apps/web",
     "lint": "eslint \"{apps,packages}/**/*.ts\" --fix"
   },
+  "overrides": {
+    "es-abstract": "1.23.9",
+    "function.prototype.name": "1.1.8",
+    "hasown": "2.0.2",
+    "es-object-atoms": "1.1.1"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
