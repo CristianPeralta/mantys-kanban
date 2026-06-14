@@ -2,8 +2,6 @@ version: '3.9'
 services:
   postgres:
     image: postgres:16-alpine
-    ports:
-      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -31,6 +29,21 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-mantys}:${POSTGRES_PASSWORD:-mantys}@postgres:5432/${POSTGRES_DB:-mantys_kanban}
+      PORT: '3000'
+      WEB_URL: ${WEB_URL:-http://localhost:3001}
+    networks:
+      - mantys-network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    ports:
+      - '3001:3001'
+    depends_on:
+      - api
     networks:
       - mantys-network
 
