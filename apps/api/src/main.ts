@@ -12,9 +12,12 @@ async function bootstrap() {
 
   // Create Swagger document configuration
   const config = new DocumentBuilder()
-    .setTitle('Tasks API')
-    .setDescription('API for managing tasks')
+    .setTitle('MANTYS Kanban API')
+    .setDescription('Kanban task-management API: auth, users, projects and tasks.')
     .setVersion('1.0')
+    .addTag('Auth')
+    .addTag('Projects')
+    .addTag('Users')
     .addTag('Tasks')
     .addBearerAuth()
     .build();
