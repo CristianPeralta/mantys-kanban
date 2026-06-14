@@ -77,10 +77,15 @@ export function matchesDateFilter(
   // Guard: missing deadline
   if (deadline === undefined || deadline === null) return false
 
-  // Normalize deadline to local YYYY-MM-DD
+  // Normalize deadline: deadlines are stored as UTC-midnight from a YYYY-MM-DD
+  // input, so we recover the intended calendar date from the UTC date part —
+  // not from local time (which would shift the date in UTC± timezones).
   const parsed = new Date(deadline as string | Date)
   if (isNaN(parsed.getTime())) return false
-  const D = getLocalDateStr(parsed)
+  const D =
+    typeof deadline === 'string'
+      ? deadline.slice(0, 10)
+      : parsed.toISOString().slice(0, 10)
 
   // Compute today lazily per call
   const T = getTodayStr()
