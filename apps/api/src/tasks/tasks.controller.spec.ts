@@ -89,17 +89,29 @@ describe('TasksController', () => {
   });
 
   describe('findAll', () => {
-    it('should return an array of tasks', async () => {
+    it('should return all tasks when no projectId is provided', async () => {
       const tasks = [
-        { id: '1', title: 'Task 1', projectId: 'proj-1' },
-        { id: '2', title: 'Task 2', projectId: 'proj-1' },
+        { id: '1', title: 'Task 1', projectId: 'proj-1', assignee: null },
+        { id: '2', title: 'Task 2', projectId: 'proj-1', assignee: null },
       ];
       jest.spyOn(tasksService, 'findAll').mockResolvedValue(tasks as any);
 
-      const result = await tasksController.findAll();
+      const result = await tasksController.findAll(undefined);
 
       expect(result).toEqual(tasks);
-      expect(tasksService.findAll).toHaveBeenCalled();
+      expect(tasksService.findAll).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should forward projectId to tasksService.findAll', async () => {
+      const tasks = [
+        { id: '1', title: 'Task 1', projectId: 'proj-1', assignee: null },
+      ];
+      jest.spyOn(tasksService, 'findAll').mockResolvedValue(tasks as any);
+
+      const result = await tasksController.findAll('proj-1');
+
+      expect(result).toEqual(tasks);
+      expect(tasksService.findAll).toHaveBeenCalledWith('proj-1');
     });
   });
 

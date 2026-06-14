@@ -3,6 +3,10 @@ import { TasksService } from './tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
+const assigneeInclude = {
+  assignee: { select: { id: true, name: true, email: true } },
+};
+
 const mockPrisma = {
   task: {
     create: jest.fn(),
@@ -45,25 +49,47 @@ describe('TasksService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all tasks', async () => {
-      const tasks = [{ id: '1', title: 'A' }, { id: '2', title: 'B' }];
+    it('should return all tasks with assignee include when no projectId', async () => {
+      const tasks = [
+        { id: '1', title: 'A', assignee: null },
+        { id: '2', title: 'B', assignee: null },
+      ];
       mockPrisma.task.findMany.mockResolvedValue(tasks);
 
       const result = await service.findAll();
 
-      expect(mockPrisma.task.findMany).toHaveBeenCalled();
+      expect(mockPrisma.task.findMany).toHaveBeenCalledWith({
+        where: {},
+        include: assigneeInclude,
+      });
+      expect(result).toEqual(tasks);
+    });
+
+    it('should filter by projectId and include assignee when projectId is provided', async () => {
+      const tasks = [{ id: '1', title: 'A', assignee: null, projectId: 'proj-1' }];
+      mockPrisma.task.findMany.mockResolvedValue(tasks);
+
+      const result = await service.findAll('proj-1');
+
+      expect(mockPrisma.task.findMany).toHaveBeenCalledWith({
+        where: { projectId: 'proj-1' },
+        include: assigneeInclude,
+      });
       expect(result).toEqual(tasks);
     });
   });
 
   describe('findOne', () => {
-    it('should return a task by id', async () => {
-      const task = { id: '1', title: 'A' };
+    it('should return a task by id with assignee include', async () => {
+      const task = { id: '1', title: 'A', assignee: null };
       mockPrisma.task.findUnique.mockResolvedValue(task);
 
       const result = await service.findOne('1');
 
-      expect(mockPrisma.task.findUnique).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrisma.task.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+        include: assigneeInclude,
+      });
       expect(result).toEqual(task);
     });
 
