@@ -98,7 +98,7 @@ describe('TasksController (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete(`/tasks/${task.id}`)
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.NO_CONTENT);
 
       const found = await prisma.task.findUnique({ where: { id: task.id } });
       expect(found).toBeNull();
