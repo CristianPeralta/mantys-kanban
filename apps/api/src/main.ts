@@ -16,6 +16,7 @@ async function bootstrap() {
     .setDescription('API for managing tasks')
     .setVersion('1.0')
     .addTag('Tasks')
+    .addBearerAuth()
     .build();
 
   // Generate Swagger document from the app and configuration
