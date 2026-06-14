@@ -101,6 +101,12 @@ describe('TasksService', () => {
 
       expect(result).toBeNull();
     });
+
+    it('should rethrow non-P2025 errors from update', async () => {
+      const genericError = new Error('unexpected');
+      mockPrisma.task.update.mockRejectedValue(genericError);
+      await expect(service.update('id', { title: 'x' } as any)).rejects.toThrow('unexpected');
+    });
   });
 
   describe('remove', () => {
@@ -124,6 +130,12 @@ describe('TasksService', () => {
       const result = await service.remove('missing');
 
       expect(result).toBeNull();
+    });
+
+    it('should rethrow non-P2025 errors from remove', async () => {
+      const genericError = new Error('unexpected');
+      mockPrisma.task.delete.mockRejectedValue(genericError);
+      await expect(service.remove('id')).rejects.toThrow('unexpected');
     });
   });
 });
