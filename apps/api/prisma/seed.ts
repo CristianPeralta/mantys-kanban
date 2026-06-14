@@ -1,5 +1,6 @@
 import { config } from 'dotenv'
 config()
+if (!process.env.DATABASE_URL) config({ path: '.env.test', override: false })
 
 import { PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
