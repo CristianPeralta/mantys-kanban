@@ -70,6 +70,13 @@ describe('AuthService', () => {
       expect(result).toEqual(createdUser);
       expect((result as any).password).toBeUndefined();
     });
+
+    it('should propagate errors from usersService.create', async () => {
+      mockUsersService.create.mockRejectedValue(new Error('db error'));
+      await expect(
+        service.register({ email: 'x@x.com', password: 'p', name: 'X' }),
+      ).rejects.toThrow('db error');
+    });
   });
 
   describe('validateUser', () => {

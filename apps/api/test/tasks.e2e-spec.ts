@@ -104,4 +104,59 @@ describe('TasksController (e2e)', () => {
       expect(found).toBeNull();
     });
   });
+
+  describe('Full flow: login → create task → move status', () => {
+    const flowUser = {
+      email: 'flow-e2e@example.com',
+      password: 'test123',
+      name: 'Flow E2E',
+    };
+    let accessToken: string;
+
+    beforeEach(async () => {
+      await prisma.user.deleteMany({ where: { email: flowUser.email } });
+      await request(app.getHttpServer()).post('/auth/register').send(flowUser);
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: flowUser.email, password: flowUser.password });
+      accessToken = loginRes.body.accessToken;
+    });
+
+    afterAll(async () => {
+      await prisma.user.deleteMany({ where: { email: flowUser.email } });
+    });
+
+    it('should create a task (BACKLOG), move to IN_PROGRESS, then to DONE', async () => {
+      // Create task — note: projectId is set by the outer beforeEach
+      const createRes = await request(app.getHttpServer())
+        .post('/tasks')
+        .send({ title: 'Flow Task', projectId })
+        .expect(HttpStatus.CREATED);
+
+      expect(createRes.body.status).toBe('BACKLOG');
+      const taskId = createRes.body.id;
+
+      // Move to IN_PROGRESS
+      const inProgressRes = await request(app.getHttpServer())
+        .put(`/tasks/${taskId}`)
+        .send({ status: 'IN_PROGRESS' })
+        .expect(HttpStatus.OK);
+
+      expect(inProgressRes.body.status).toBe('IN_PROGRESS');
+
+      // Move to DONE
+      const doneRes = await request(app.getHttpServer())
+        .put(`/tasks/${taskId}`)
+        .send({ status: 'DONE' })
+        .expect(HttpStatus.OK);
+
+      expect(doneRes.body.status).toBe('DONE');
+      expect(doneRes.body.title).toBe('Flow Task');
+    });
+
+    it('should have obtained a valid accessToken during login', () => {
+      expect(typeof accessToken).toBe('string');
+      expect(accessToken.length).toBeGreaterThan(0);
+    });
+  });
 });
