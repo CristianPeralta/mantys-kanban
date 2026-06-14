@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Project } from '@mantys/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { deleteProjectAction } from '@/app/actions/projects'
 
 interface Props {
   mode: 'create' | 'edit'
@@ -11,11 +12,12 @@ interface Props {
   onClose: () => void
   onSave: (project: Project) => void
   onDelete?: (projectId: string) => void
+  currentUserRole?: string
 }
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002'
 
-export default function ProjectModal({ mode, project, onClose, onSave, onDelete }: Props) {
+export default function ProjectModal({ mode, project, onClose, onSave, onDelete, currentUserRole }: Props) {
   const [name, setName] = useState(project?.name ?? '')
   const [description, setDescription] = useState(project?.description ?? '')
   const [loading, setLoading] = useState(false)
@@ -49,12 +51,11 @@ export default function ProjectModal({ mode, project, onClose, onSave, onDelete 
     if (!project) return
     setLoading(true)
     setError(null)
-    try {
-      const res = await fetch(`${BASE}/projects/${project.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete project')
+    const result = await deleteProjectAction(project.id)
+    if (result.ok) {
       onDelete?.(project.id)
-    } catch {
-      setError('Could not delete project. Try again.')
+    } else {
+      setError(result.error)
       setLoading(false)
     }
   }
@@ -133,7 +134,7 @@ export default function ProjectModal({ mode, project, onClose, onSave, onDelete 
             )}
 
             <div className="flex items-center gap-2 pt-1">
-              {mode === 'edit' && (
+              {mode === 'edit' && currentUserRole === 'OWNER' && (
                 <Button
                   type="button"
                   size="sm"

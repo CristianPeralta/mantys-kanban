@@ -10,9 +10,10 @@ import ProjectModal from './ProjectModal'
 interface Props {
   projects: Project[]
   activeProjectId?: string
+  currentUserRole?: string
 }
 
-export default function Sidebar({ projects: initialProjects, activeProjectId }: Props) {
+export default function Sidebar({ projects: initialProjects, activeProjectId, currentUserRole }: Props) {
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const [modal, setModal] = useState<{ open: boolean; mode: 'create' | 'edit'; project?: Project }>({
@@ -107,6 +108,7 @@ export default function Sidebar({ projects: initialProjects, activeProjectId }: 
           onClose={() => setModal({ open: false, mode: 'create' })}
           onSave={handleSave}
           onDelete={handleDelete}
+          currentUserRole={currentUserRole}
         />
       )}
     </>

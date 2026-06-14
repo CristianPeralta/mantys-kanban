@@ -59,7 +59,7 @@ interface Props {
   initialTasks: Task[]
   projects: Project[]
   users: User[]
-  currentUser: { name?: string; email?: string } | null
+  currentUser: { name?: string; email?: string; role?: string } | null
   activeProjectId?: string
 }
 
