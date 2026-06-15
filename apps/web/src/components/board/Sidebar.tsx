@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import type { Project } from '@mantys/types'
 import { cn } from '@/lib/utils'
@@ -9,17 +9,23 @@ import ProjectModal from './ProjectModal'
 
 interface Props {
   projects: Project[]
-  activeProjectId?: string
+  /** Slug of the currently active project, if any. */
+  activeProjectSlug?: string
   currentUserRole?: string
 }
 
-export default function Sidebar({ projects: initialProjects, activeProjectId, currentUserRole }: Props) {
+export default function Sidebar({ projects: initialProjects, activeProjectSlug, currentUserRole }: Props) {
   const router = useRouter()
+  const pathname = usePathname()
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const [modal, setModal] = useState<{ open: boolean; mode: 'create' | 'edit'; project?: Project }>({
     open: false,
     mode: 'create',
   })
+
+  // Derive active slug from URL path when not passed explicitly.
+  // Path shape: /board/<slug>  → segments[2] = slug
+  const currentSlug = activeProjectSlug ?? pathname.split('/')[2] ?? undefined
 
   function openCreate() {
     setModal({ open: true, mode: 'create' })
@@ -36,17 +42,18 @@ export default function Sidebar({ projects: initialProjects, activeProjectId, cu
     })
     setModal({ open: false, mode: 'create' })
     if (modal.mode === 'create') {
-      router.push(`/board?projectId=${saved.id}`)
+      router.push(`/board/${saved.slug}`)
     }
   }
 
   function handleDelete(projectId: string) {
     const remaining = projects.filter((p) => p.id !== projectId)
+    const deletedProject = projects.find((p) => p.id === projectId)
     setProjects(remaining)
     setModal({ open: false, mode: 'create' })
     if (remaining.length === 0) {
       router.push('/projects/new')
-    } else if (activeProjectId === projectId) {
+    } else if (currentSlug === deletedProject?.slug) {
       router.push('/board')
     }
   }
@@ -69,7 +76,7 @@ export default function Sidebar({ projects: initialProjects, activeProjectId, cu
             href="/board"
             className={cn(
               'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors',
-              !activeProjectId
+              !currentSlug
                 ? 'bg-[#18181c] text-[#e4e4e7]'
                 : 'text-[#a1a1aa] hover:bg-[#18181c] hover:text-[#e4e4e7]',
             )}
@@ -79,10 +86,10 @@ export default function Sidebar({ projects: initialProjects, activeProjectId, cu
           {projects.map((p) => (
             <div key={p.id} className="group relative mt-0.5">
               <Link
-                href={`/board?projectId=${p.id}`}
+                href={`/board/${p.slug}`}
                 className={cn(
                   'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors pr-8',
-                  activeProjectId === p.id
+                  currentSlug === p.slug
                     ? 'bg-[#18181c] text-[#e4e4e7]'
                     : 'text-[#a1a1aa] hover:bg-[#18181c] hover:text-[#e4e4e7]',
                 )}
