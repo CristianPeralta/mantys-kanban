@@ -33,6 +33,19 @@ export class ProjectsController {
   }
 
   /**
+   * Retrieve a single project by slug.
+   * IMPORTANT: This route MUST be declared BEFORE @Get(':id') so NestJS
+   * does not capture the literal string 'by-slug' as an :id parameter.
+   */
+  @ApiOperation({ summary: 'Get a project by slug' })
+  @ApiResponse({ status: 200, description: 'Returns the project' })
+  @ApiResponse({ status: 404, description: 'Project not found' })
+  @Get('by-slug/:slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.projectsService.findBySlug(slug);
+  }
+
+  /**
    * Retrieve a single project by ID
    */
   @ApiOperation({ summary: 'Get a project by ID' })
