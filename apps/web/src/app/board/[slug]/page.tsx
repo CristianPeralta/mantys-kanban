@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { redirect, permanentRedirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import type { Task, Project, User } from '@mantys/types'
 import KanbanBoard from '@/components/board/KanbanBoard'
 import Sidebar from '@/components/board/Sidebar'
@@ -20,34 +20,28 @@ async function fetchWithAuth<T>(path: string, token: string): Promise<T> {
   return res.json()
 }
 
-export default async function BoardPage({
-  searchParams,
+export default async function BoardSlugPage({
+  params,
 }: {
-  searchParams: { projectId?: string }
+  params: { slug: string }
 }) {
   const token = cookies().get('auth-token')?.value ?? ''
-  const { projectId } = searchParams
+  const { slug } = params
 
-  // Legacy redirect: /board?projectId=<cuid> → /board/<slug>
-  if (projectId) {
-    let project: Project
-    try {
-      project = await fetchWithAuth<Project>(`/projects/${projectId}`, token)
-    } catch {
-      notFound()
-    }
-    permanentRedirect(`/board/${project!.slug}`)
+  // Resolve slug → project (404 if slug unknown)
+  let project: Project
+  try {
+    project = await fetchWithAuth<Project>(`/projects/by-slug/${slug}`, token)
+  } catch {
+    notFound()
   }
 
-  // All-projects view
   const [tasks, projects, users, profile] = await Promise.all([
-    fetchWithAuth<Task[]>('/tasks', token),
+    fetchWithAuth<Task[]>(`/tasks?projectId=${project!.id}`, token),
     fetchWithAuth<Project[]>('/projects', token),
     fetchWithAuth<User[]>('/users', token),
     fetchWithAuth<JwtProfile>('/auth/profile', token).catch(() => null),
   ])
-
-  if (projects.length === 0) redirect('/projects/new')
 
   const foundUser = profile ? users.find((u) => u.id === profile.id) : undefined
   const currentUser = profile
@@ -58,13 +52,14 @@ export default async function BoardPage({
 
   return (
     <div className="flex h-screen bg-[#0d0d0f]">
-      <Sidebar projects={projects} currentUserRole={profile?.role} />
+      <Sidebar projects={projects} activeProjectSlug={slug} currentUserRole={profile?.role} />
       <KanbanBoard
-        key="all"
+        key={project!.id}
         initialTasks={tasks}
         projects={projects}
         users={users}
         currentUser={currentUser}
+        activeProjectId={project!.id}
       />
     </div>
   )

@@ -1,5 +1,6 @@
 /**
  * Test suite: ProjectsController — DELETE /projects/:id authorization
+ * and GET /projects/by-slug/:slug route delegation.
  *
  * Tests the role-based access control on the remove() handler.
  * JwtAuthGuard is overridden with a custom guard that injects a mock user
@@ -14,6 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 const mockProjectsService = {
   remove: jest.fn(),
+  findBySlug: jest.fn(),
 };
 
 describe('ProjectsController', () => {
@@ -52,6 +54,18 @@ describe('ProjectsController', () => {
 
       expect(mockProjectsService.remove).toHaveBeenCalledTimes(1);
       expect(mockProjectsService.remove).toHaveBeenCalledWith('project-1');
+    });
+  });
+
+  describe('findBySlug (GET by-slug/:slug)', () => {
+    it('calls service.findBySlug with the slug and returns the result', async () => {
+      const project = { id: 'proj-1', name: 'My Project', slug: 'my-project', description: null, createdAt: new Date() };
+      mockProjectsService.findBySlug.mockResolvedValue(project);
+
+      const result = await controller.findBySlug('my-project');
+
+      expect(mockProjectsService.findBySlug).toHaveBeenCalledWith('my-project');
+      expect(result).toEqual(project);
     });
   });
 });

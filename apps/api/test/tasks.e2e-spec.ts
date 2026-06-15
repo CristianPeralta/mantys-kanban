@@ -24,7 +24,7 @@ describe('TasksController (e2e)', () => {
   beforeEach(async () => {
     await prisma.task.deleteMany({});
     await prisma.project.deleteMany({});
-    const project = await prisma.project.create({ data: { name: 'Test Project' } });
+    const project = await prisma.project.create({ data: { name: 'Test Project', slug: 'test-project' } });
     projectId = project.id;
   });
 
