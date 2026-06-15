@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { redirect, notFound } from 'next/navigation'
+import { redirect, permanentRedirect, notFound } from 'next/navigation'
 import type { Task, Project, User } from '@mantys/types'
 import KanbanBoard from '@/components/board/KanbanBoard'
 import Sidebar from '@/components/board/Sidebar'
@@ -36,7 +36,7 @@ export default async function BoardPage({
     } catch {
       notFound()
     }
-    redirect(`/board/${project!.slug}`)
+    permanentRedirect(`/board/${project!.slug}`)
   }
 
   // All-projects view
