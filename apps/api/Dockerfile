@@ -2,35 +2,50 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy root workspace config and lock file
 COPY package.json package-lock.json ./
 COPY packages/types/package.json ./packages/types/
 COPY apps/api/package.json ./apps/api/
+COPY apps/api/prisma ./apps/api/prisma
 
-RUN npm ci
+RUN apk add --no-cache openssl && npm ci
 
-# Copy source
+RUN apps/api/node_modules/.bin/prisma generate --schema=apps/api/prisma/schema.prisma
+
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
 RUN npm run build --workspace=packages/types
 RUN npm run build --workspace=apps/api
 
-# Production image
+FROM node:20-alpine AS pruner
+
+WORKDIR /app
+
+RUN apk add --no-cache openssl
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/apps/api/package.json ./apps/api/
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+
+RUN npm prune --omit=dev
+
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package.json package-lock.json ./
-COPY apps/api/package.json ./apps/api/
-COPY packages/types/package.json ./packages/types/
+RUN apk add --no-cache openssl
 
-RUN npm ci --omit=dev
+COPY --from=pruner /app/node_modules ./node_modules
+COPY --from=pruner /app/apps/api/node_modules ./apps/api/node_modules
 
-# Prisma generated client + CLI assets from builder (safety net if postinstall is skipped)
-COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
+# class-validator and class-transformer are workspace-local (apps/api) but @nestjs/common
+# resolves them from root node_modules. Symlink to fix resolution without changing package.json.
+RUN ln -s /app/apps/api/node_modules/class-validator /app/node_modules/class-validator && \
+    ln -s /app/apps/api/node_modules/class-transformer /app/node_modules/class-transformer
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist

@@ -1,8 +1,7 @@
 #!/bin/sh
 set -e
 
-cd /app/apps/api
 echo "[entrypoint] running prisma migrate deploy"
-npx prisma migrate deploy
+apps/api/node_modules/.bin/prisma migrate deploy --schema=apps/api/prisma/schema.prisma
 echo "[entrypoint] starting API"
-exec node dist/main
+exec node apps/api/dist/src/main
