@@ -1,0 +1,87 @@
+schema: spec-driven
+
+context: |
+  Project: mantys-kanban — Kanban task-management app for MANTYS.
+  Monorepo: npm workspaces (Node 18+), workspaces = apps/*, packages/*.
+
+  Tech stack:
+  - API (apps/api): NestJS 9 + Express adapter, Prisma 5 + PostgreSQL, JWT auth
+    (@nestjs/jwt + passport-jwt + bcrypt), class-validator/class-transformer,
+    @nestjs/swagger for API docs. TypeScript with relaxed strictness
+    (strictNullChecks: false, noImplicitAny: false).
+  - Web (apps/web): Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4 +
+    shadcn/ui (Radix primitives, CVA), @dnd-kit for drag-and-drop, axios for
+    HTTP, lucide-react icons.
+  - Shared (packages/types): @mantys/types — shared TS interfaces/enums
+    (User, Project, Task, Role, Priority, TaskStatus, DTO shapes) consumed by
+    both API and web.
+  - CLI (packages/cli): @mantys/cli — thin Notion migration CLI
+    (@notionhq/client), Jest/ts-jest tested. Added outside the tracked SDD
+    pipeline (see openspec/changes/archive gap notes).
+  - Infra: Docker multi-stage builds (API + web), docker-compose for local
+    Postgres, GitHub Actions CI + CD (GHCR + SSH deploy to a Netcup VPS —
+    api.mantys.studio, kanban.mantys.studio). No Vercel; everything on one
+    VPS by explicit decision.
+
+  Architecture:
+  - REST API, no GraphQL. Controllers -> Services -> PrismaService (direct
+    Prisma client calls, no repository/UoW abstraction layer — deliberate,
+    thin CRUD at this scale).
+  - Auth: JWT Bearer tokens issued by POST /auth/login and POST
+    /auth/register; passwords bcrypt-hashed in UsersService.create() (single
+    hashing choke point for every creation path). Web stores the JWT in an
+    httpOnly cookie (`auth-token`) and reads it server-side in Server
+    Actions / route handlers; edge middleware does trust-on-existence
+    routing (cannot verify JWT signature at the edge).
+  - Web board is a Server Component shell (SSR fetch + cookie auth) with a
+    Client Component DnD island (dnd-kit) for interactive columns.
+  - Roles: OWNER | MEMBER. OWNER-only actions enforced at the service/guard
+    layer, never trusted from the client.
+
+  Testing:
+  - API: Jest 29 — unit specs (`apps/api/src/**/*.spec.ts`) mock
+    PrismaService; e2e specs (`apps/api/test/*.e2e-spec.ts`) run against a
+    real local PostgreSQL DB (`mantys_kanban_test`).
+  - Web: no test runner configured in the current codebase (`apps/web`
+    "test" script is a no-op). A prior change added Vitest + unit tests for
+    date-filter utilities, but that work never reached `main` (see the
+    issue-42-date-filter gap note in the archive) — do not assume Vitest is
+    available until it is actually merged.
+  - CLI: Jest + ts-jest.
+  - Strict TDD mode was active for API work throughout the SDD history in
+    this project (test runner: `npm run test:api`).
+
+  Style:
+  - Conventional commits, no AI co-author attribution.
+  - Prettier (singleQuote, trailingComma: all, endOfLine: auto), ESLint 8.
+  - English for code, comments, docs, and commit messages.
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Flag when a change modifies shared contracts in packages/types
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Document architecture decisions with rationale (decision/rejected/why table)
+    - Prefer the existing "Service calls PrismaService directly" pattern; do not
+      introduce a repository/UoW layer without a stated reason
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - For multi-slice work, state each slice's branch, base branch, and merge target explicitly
+  apply:
+    - Follow existing code patterns
+    tdd: true
+    test_command: "npm run test:api"
+  verify:
+    test_command: "npm run test:api"
+    build_command: "npm run build:api"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+    - Before archiving, confirm the change's branch/PR actually landed on main
+      (this project has a history of PRs merged into a stale feature branch
+      instead of main — verify with `git merge-base --is-ancestor <sha> main`
+      and `gh pr view <n> --json baseRefName,mergedAt`, not just local
+      `git log --all`)
