@@ -18,6 +18,8 @@ import { UpdateProjectDto } from '../dto/update-project.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Projects')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
@@ -85,8 +87,6 @@ export class ProjectsController {
   @ApiResponse({ status: 401, description: 'Missing or invalid token' })
   @ApiResponse({ status: 403, description: 'Caller is not an OWNER' })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id') id: string, @Req() req: any) {

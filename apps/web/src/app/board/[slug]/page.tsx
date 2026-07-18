@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Task, Project, User } from '@mantys/types'
 import KanbanBoard from '@/components/board/KanbanBoard'
 import Sidebar from '@/components/board/Sidebar'
@@ -26,6 +26,7 @@ export default async function BoardSlugPage({
   params: { slug: string }
 }) {
   const token = cookies().get('auth-token')?.value ?? ''
+  if (!token) redirect('/login')
   const { slug } = params
 
   // Resolve slug → project (404 if slug unknown)

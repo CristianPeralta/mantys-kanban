@@ -26,6 +26,7 @@ export default async function BoardPage({
   searchParams: { projectId?: string }
 }) {
   const token = cookies().get('auth-token')?.value ?? ''
+  if (!token) redirect('/login')
   const { projectId } = searchParams
 
   // Legacy redirect: /board?projectId=<cuid> → /board/<slug>
