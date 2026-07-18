@@ -8,6 +8,12 @@ describe('TasksController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let projectId: string;
+  let accessToken: string;
+  const testUser = {
+    email: 'tasks-e2e@example.com',
+    password: 'test123',
+    name: 'Tasks E2E',
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -19,6 +25,13 @@ describe('TasksController (e2e)', () => {
     await app.init();
 
     prisma = moduleFixture.get<PrismaService>(PrismaService);
+
+    await prisma.user.deleteMany({ where: { email: testUser.email } });
+    await request(app.getHttpServer()).post('/auth/register').send(testUser);
+    const loginRes = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: testUser.email, password: testUser.password });
+    accessToken = loginRes.body.accessToken;
   });
 
   beforeEach(async () => {
@@ -31,6 +44,7 @@ describe('TasksController (e2e)', () => {
   afterAll(async () => {
     await prisma.task.deleteMany({});
     await prisma.project.deleteMany({});
+    await prisma.user.deleteMany({ where: { email: testUser.email } });
     await app.close();
   });
 
@@ -39,9 +53,16 @@ describe('TasksController (e2e)', () => {
       await prisma.task.create({ data: { title: 'Task 1', projectId } });
       await prisma.task.create({ data: { title: 'Task 2', projectId } });
 
-      const res = await request(app.getHttpServer()).get('/tasks').expect(HttpStatus.OK);
+      const res = await request(app.getHttpServer())
+        .get('/tasks')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(HttpStatus.OK);
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body.length).toBe(2);
+    });
+
+    it('should return 401 without a token', async () => {
+      await request(app.getHttpServer()).get('/tasks').expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
@@ -51,6 +72,7 @@ describe('TasksController (e2e)', () => {
 
       const res = await request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', `Bearer ${accessToken}`)
         .send(dto)
         .expect(HttpStatus.CREATED);
 
@@ -61,6 +83,7 @@ describe('TasksController (e2e)', () => {
     it('should return 400 when title is missing', async () => {
       await request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({ projectId })
         .expect(HttpStatus.BAD_REQUEST);
     });
@@ -72,6 +95,7 @@ describe('TasksController (e2e)', () => {
 
       const res = await request(app.getHttpServer())
         .get(`/tasks/${task.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .expect(HttpStatus.OK);
 
       expect(res.body.id).toBe(task.id);
@@ -85,6 +109,7 @@ describe('TasksController (e2e)', () => {
 
       const res = await request(app.getHttpServer())
         .put(`/tasks/${task.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'New Title' })
         .expect(HttpStatus.OK);
 
@@ -98,6 +123,7 @@ describe('TasksController (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete(`/tasks/${task.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .expect(HttpStatus.NO_CONTENT);
 
       const found = await prisma.task.findUnique({ where: { id: task.id } });
@@ -106,57 +132,32 @@ describe('TasksController (e2e)', () => {
   });
 
   describe('Full flow: login → create task → move status', () => {
-    const flowUser = {
-      email: 'flow-e2e@example.com',
-      password: 'test123',
-      name: 'Flow E2E',
-    };
-    let accessToken: string;
-
-    beforeEach(async () => {
-      await prisma.user.deleteMany({ where: { email: flowUser.email } });
-      await request(app.getHttpServer()).post('/auth/register').send(flowUser);
-      const loginRes = await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({ email: flowUser.email, password: flowUser.password });
-      accessToken = loginRes.body.accessToken;
-    });
-
-    afterAll(async () => {
-      await prisma.user.deleteMany({ where: { email: flowUser.email } });
-    });
-
     it('should create a task (BACKLOG), move to IN_PROGRESS, then to DONE', async () => {
-      // Create task — note: projectId is set by the outer beforeEach
       const createRes = await request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'Flow Task', projectId })
         .expect(HttpStatus.CREATED);
 
       expect(createRes.body.status).toBe('BACKLOG');
       const taskId = createRes.body.id;
 
-      // Move to IN_PROGRESS
       const inProgressRes = await request(app.getHttpServer())
         .put(`/tasks/${taskId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({ status: 'IN_PROGRESS' })
         .expect(HttpStatus.OK);
 
       expect(inProgressRes.body.status).toBe('IN_PROGRESS');
 
-      // Move to DONE
       const doneRes = await request(app.getHttpServer())
         .put(`/tasks/${taskId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .send({ status: 'DONE' })
         .expect(HttpStatus.OK);
 
       expect(doneRes.body.status).toBe('DONE');
       expect(doneRes.body.title).toBe('Flow Task');
-    });
-
-    it('should have obtained a valid accessToken during login', () => {
-      expect(typeof accessToken).toBe('string');
-      expect(accessToken.length).toBeGreaterThan(0);
     });
   });
 });
