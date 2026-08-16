@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { Task } from '@mantys/types'
@@ -55,6 +56,7 @@ export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }
   const { setNodeRef, isOver } = useDroppable({ id })
   const styles = COLUMN_STYLES[id]
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [collapsed, setCollapsed] = useState(false)
   const visibleTasks = tasks.slice(0, visibleCount)
   const hiddenCount = tasks.length - visibleTasks.length
   const taskIds = visibleTasks.map((t) => t.id)
@@ -80,31 +82,50 @@ export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }
             {tasks.length}
           </span>
         </div>
-        <button
-          onClick={() => onAddTask(id)}
-          className={cn(
-            'w-5 h-5 rounded flex items-center justify-center text-lg leading-none transition-opacity opacity-50 hover:opacity-100',
-            styles.label,
-          )}
-          title="New task"
-          aria-label="New task"
-        >
-          +
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className={cn(
+              'w-5 h-5 rounded flex items-center justify-center transition-opacity opacity-50 hover:opacity-100',
+              styles.label,
+            )}
+            title={collapsed ? 'Show tasks' : 'Hide tasks'}
+            aria-label={collapsed ? 'Show tasks' : 'Hide tasks'}
+          >
+            {collapsed ? <EyeOff size={13} /> : <Eye size={13} />}
+          </button>
+          <button
+            onClick={() => onAddTask(id)}
+            className={cn(
+              'w-5 h-5 rounded flex items-center justify-center text-lg leading-none transition-opacity opacity-50 hover:opacity-100',
+              styles.label,
+            )}
+            title="New task"
+            aria-label="New task"
+          >
+            +
+          </button>
+        </div>
       </div>
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <div
           ref={setNodeRef}
           className={cn(
-            'flex-1 flex flex-col gap-1.5 p-2 rounded-b-[10px] border border-t-0 min-h-[120px] transition-colors',
+            'flex-1 flex flex-col gap-1.5 p-2 rounded-b-[10px] border border-t-0 transition-colors',
+            collapsed ? 'min-h-[36px]' : 'min-h-[120px]',
             styles.body,
             isOver && 'ring-1 ring-indigo-500/30',
           )}
         >
-          {visibleTasks.map((task) => (
+          {collapsed && tasks.length > 0 && (
+            <span className={cn('text-xs text-center py-1 opacity-50', styles.label)}>
+              {tasks.length} hidden
+            </span>
+          )}
+          {!collapsed && visibleTasks.map((task) => (
             <TaskCard key={task.id} task={task} onClick={() => onEditTask(task)} />
           ))}
-          {hiddenCount > 0 && (
+          {!collapsed && hiddenCount > 0 && (
             <button
               onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
               className={cn(
