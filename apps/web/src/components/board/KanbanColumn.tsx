@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { Task } from '@mantys/types'
@@ -61,6 +61,47 @@ export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }
   const hiddenCount = tasks.length - visibleTasks.length
   const taskIds = visibleTasks.map((t) => t.id)
 
+  if (collapsed) {
+    return (
+      <div
+        ref={setNodeRef}
+        className={cn(
+          'flex flex-col items-center w-10 flex-shrink-0 py-2.5 gap-2 rounded-[10px] border transition-colors',
+          styles.header,
+          isOver && 'ring-1 ring-indigo-500/30',
+        )}
+      >
+        <button
+          onClick={() => setCollapsed(false)}
+          className={cn(
+            'w-5 h-5 rounded flex items-center justify-center transition-opacity opacity-50 hover:opacity-100',
+            styles.label,
+          )}
+          title="Expand column"
+          aria-label="Expand column"
+        >
+          <ChevronsRight size={13} />
+        </button>
+        <span
+          className={cn(
+            'text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center',
+            styles.badge,
+          )}
+        >
+          {tasks.length}
+        </span>
+        <span
+          className={cn(
+            'text-xs font-semibold uppercase tracking-[0.04em] [writing-mode:vertical-rl]',
+            styles.label,
+          )}
+        >
+          {label}
+        </span>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col w-[250px] flex-shrink-0">
       <div
@@ -84,15 +125,15 @@ export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }
         </div>
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setCollapsed((c) => !c)}
+            onClick={() => setCollapsed(true)}
             className={cn(
               'w-5 h-5 rounded flex items-center justify-center transition-opacity opacity-50 hover:opacity-100',
               styles.label,
             )}
-            title={collapsed ? 'Show tasks' : 'Hide tasks'}
-            aria-label={collapsed ? 'Show tasks' : 'Hide tasks'}
+            title="Collapse column"
+            aria-label="Collapse column"
           >
-            {collapsed ? <EyeOff size={13} /> : <Eye size={13} />}
+            <ChevronsLeft size={13} />
           </button>
           <button
             onClick={() => onAddTask(id)}
@@ -111,21 +152,15 @@ export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }
         <div
           ref={setNodeRef}
           className={cn(
-            'flex-1 flex flex-col gap-1.5 p-2 rounded-b-[10px] border border-t-0 transition-colors',
-            collapsed ? 'min-h-[36px]' : 'min-h-[120px]',
+            'flex-1 flex flex-col gap-1.5 p-2 rounded-b-[10px] border border-t-0 min-h-[120px] transition-colors',
             styles.body,
             isOver && 'ring-1 ring-indigo-500/30',
           )}
         >
-          {collapsed && tasks.length > 0 && (
-            <span className={cn('text-xs text-center py-1 opacity-50', styles.label)}>
-              {tasks.length} hidden
-            </span>
-          )}
-          {!collapsed && visibleTasks.map((task) => (
+          {visibleTasks.map((task) => (
             <TaskCard key={task.id} task={task} onClick={() => onEditTask(task)} />
           ))}
-          {!collapsed && hiddenCount > 0 && (
+          {hiddenCount > 0 && (
             <button
               onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
               className={cn(
