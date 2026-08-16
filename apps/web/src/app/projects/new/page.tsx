@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { createProjectAction } from '@/app/actions/projects'
 
 export default function NewProjectPage() {
   const router = useRouter()
@@ -16,17 +17,14 @@ export default function NewProjectPage() {
     if (!name.trim()) return
     setLoading(true)
     setError(null)
-    try {
-      const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002'
-      const res = await fetch(`${base}/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() || undefined }),
-      })
-      if (!res.ok) throw new Error('Failed to create project')
+    const result = await createProjectAction({
+      name: name.trim(),
+      description: description.trim() || undefined,
+    })
+    if (result.ok) {
       router.push('/board')
-    } catch {
-      setError('Could not create project. Try again.')
+    } else {
+      setError(result.error)
       setLoading(false)
     }
   }

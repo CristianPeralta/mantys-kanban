@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { Project } from '@mantys/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { deleteProjectAction } from '@/app/actions/projects'
+import { createProjectAction, updateProjectAction, deleteProjectAction } from '@/app/actions/projects'
 
 interface Props {
   mode: 'create' | 'edit'
@@ -14,8 +14,6 @@ interface Props {
   onDelete?: (projectId: string) => void
   currentUserRole?: string
 }
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002'
 
 export default function ProjectModal({ mode, project, onClose, onSave, onDelete, currentUserRole }: Props) {
   const [name, setName] = useState(project?.name ?? '')
@@ -29,20 +27,15 @@ export default function ProjectModal({ mode, project, onClose, onSave, onDelete,
     if (!name.trim()) return
     setLoading(true)
     setError(null)
-    try {
-      const res = await fetch(
-        mode === 'create' ? `${BASE}/projects` : `${BASE}/projects/${project!.id}`,
-        {
-          method: mode === 'create' ? 'POST' : 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name.trim(), description: description.trim() || undefined }),
-        },
-      )
-      if (!res.ok) throw new Error('Failed to save project')
-      const saved: Project = await res.json()
-      onSave(saved)
-    } catch {
-      setError('Could not save project. Try again.')
+    const payload = { name: name.trim(), description: description.trim() || undefined }
+    const result =
+      mode === 'create'
+        ? await createProjectAction(payload)
+        : await updateProjectAction(project!.id, payload)
+    if (result.ok) {
+      onSave(result.project)
+    } else {
+      setError(result.error)
       setLoading(false)
     }
   }
