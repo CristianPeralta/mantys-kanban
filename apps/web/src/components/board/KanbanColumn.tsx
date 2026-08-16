@@ -50,7 +50,7 @@ interface Props {
   onEditTask: (task: Task) => void
 }
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 10
 
 export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id })
