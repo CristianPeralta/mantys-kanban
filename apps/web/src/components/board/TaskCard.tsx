@@ -39,6 +39,15 @@ export function getInitials(name?: string | null, email?: string | null): string
   return '?'
 }
 
+// ponytail: per-user map; add entries if the team grows
+const AVATAR_GRADIENTS: Record<string, string> = {
+  'cristian@mantys.studio': 'from-emerald-500 to-green-600',
+}
+
+export function avatarGradient(email?: string | null): string {
+  return (email && AVATAR_GRADIENTS[email]) || 'from-indigo-500 to-violet-500'
+}
+
 export function formatDeadline(date?: Date | string | null): string | null {
   if (!date) return null
   return new Date(date).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })
@@ -94,7 +103,7 @@ export default function TaskCard({ task, isDragging = false, onClick }: Props) {
               </span>
             )}
             {task.assignee && (
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-[8.5px] font-bold text-white flex-shrink-0">
+              <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${avatarGradient(task.assignee.email)} flex items-center justify-center text-[8.5px] font-bold text-white flex-shrink-0`}>
                 {getInitials(task.assignee.name, task.assignee.email)}
               </div>
             )}

@@ -23,7 +23,7 @@ import { logoutAction } from '@/app/actions/auth'
 import { updateTaskAction } from '@/app/actions/tasks'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { getInitials } from './TaskCard'
+import { getInitials, avatarGradient } from './TaskCard'
 
 const COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: TaskStatus.BACKLOG, label: 'Backlog' },
@@ -168,7 +168,7 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
           <span className="text-sm font-bold text-white tracking-tight">MANTYS Kanban</span>
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white ring-2 ring-[#1d1d21] ring-offset-1 ring-offset-[#101013]">
+          <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient(currentUser?.email)} flex items-center justify-center text-xs font-bold text-white ring-2 ring-[#1d1d21] ring-offset-1 ring-offset-[#101013]`}>
             {userInitials}
           </div>
           <form action={logoutAction}>
