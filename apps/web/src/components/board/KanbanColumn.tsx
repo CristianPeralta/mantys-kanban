@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { Task } from '@mantys/types'
@@ -48,10 +49,15 @@ interface Props {
   onEditTask: (task: Task) => void
 }
 
+const PAGE_SIZE = 15
+
 export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id })
   const styles = COLUMN_STYLES[id]
-  const taskIds = tasks.map((t) => t.id)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const visibleTasks = tasks.slice(0, visibleCount)
+  const hiddenCount = tasks.length - visibleTasks.length
+  const taskIds = visibleTasks.map((t) => t.id)
 
   return (
     <div className="flex flex-col w-[250px] flex-shrink-0">
@@ -95,9 +101,21 @@ export default function KanbanColumn({ id, label, tasks, onAddTask, onEditTask }
             isOver && 'ring-1 ring-indigo-500/30',
           )}
         >
-          {tasks.map((task) => (
+          {visibleTasks.map((task) => (
             <TaskCard key={task.id} task={task} onClick={() => onEditTask(task)} />
           ))}
+          {hiddenCount > 0 && (
+            <button
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              className={cn(
+                'text-xs py-1.5 rounded-md border border-dashed transition-opacity opacity-60 hover:opacity-100',
+                styles.label,
+                styles.header,
+              )}
+            >
+              Ver más ({hiddenCount})
+            </button>
+          )}
         </div>
       </SortableContext>
     </div>
