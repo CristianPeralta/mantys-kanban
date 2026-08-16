@@ -20,6 +20,7 @@ import KanbanColumn from './KanbanColumn'
 import TaskCard from './TaskCard'
 import TaskModal from './TaskModal'
 import { logoutAction } from '@/app/actions/auth'
+import { updateTaskAction } from '@/app/actions/tasks'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getInitials } from './TaskCard'
@@ -121,15 +122,8 @@ export default function KanbanBoard({ initialTasks, projects, users, currentUser
       const prev = tasks
       setTasks((ts) => ts.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
 
-      try {
-        const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002'
-        const res = await fetch(`${base}/tasks/${taskId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus }),
-        })
-        if (!res.ok) throw new Error('PUT failed')
-      } catch {
+      const result = await updateTaskAction(taskId, { status: newStatus })
+      if (!result.ok) {
         setTasks(prev)
         setDragError(true)
         setTimeout(() => setDragError(false), 3000)

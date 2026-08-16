@@ -12,8 +12,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3002'
+import { createTaskAction, updateTaskAction, deleteTaskAction } from '@/app/actions/tasks'
 
 const PRIORITY_LABELS: Record<Priority, string> = {
   [Priority.A]: 'A — Urgent',
@@ -98,24 +97,16 @@ export default function TaskModal({
         projectId,
       }
 
-      let res: Response
-      if (mode === 'create') {
-        res = await fetch(`${BASE}/tasks`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        })
-      } else {
-        res = await fetch(`${BASE}/tasks/${task!.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        })
-      }
+      const result =
+        mode === 'create'
+          ? await createTaskAction(body)
+          : await updateTaskAction(task!.id, body)
 
-      if (!res.ok) throw new Error(`API error ${res.status}`)
-      const saved: Task = await res.json()
-      onSave(saved)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      onSave(result.task)
       onClose()
     } catch {
       setError('Failed to save task. Please try again.')
@@ -128,8 +119,11 @@ export default function TaskModal({
     if (!task) return
     setDeleting(true)
     try {
-      const res = await fetch(`${BASE}/tasks/${task.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error(`API error ${res.status}`)
+      const result = await deleteTaskAction(task.id)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
       onDelete?.(task.id)
       onClose()
     } catch {
