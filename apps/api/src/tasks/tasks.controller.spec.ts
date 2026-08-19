@@ -46,15 +46,22 @@ describe('TasksController', () => {
   });
 
   describe('create', () => {
-    it('should call create method of TasksService and return the created task', async () => {
+    const currentUser = { id: 'user-1', email: 'roxsy@mantys.studio', role: 'MEMBER' };
+
+    it('should call create method of TasksService with the dto and the authenticated user id', async () => {
       const createTaskDto: CreateTaskDto = { title: 'Sample Task', projectId: 'proj-1' };
-      const createdTask = { id: '1', title: 'Sample Task', projectId: 'proj-1' };
+      const createdTask = {
+        id: '1',
+        title: 'Sample Task',
+        projectId: 'proj-1',
+        createdById: currentUser.id,
+      };
 
       jest.spyOn(tasksService, 'create').mockResolvedValue(createdTask as any);
 
-      const result = await tasksController.create(createTaskDto);
+      const result = await tasksController.create(createTaskDto, currentUser);
 
-      expect(tasksService.create).toHaveBeenCalledWith(createTaskDto);
+      expect(tasksService.create).toHaveBeenCalledWith(createTaskDto, currentUser.id);
       expect(result).toEqual(createdTask);
     });
 
@@ -63,7 +70,7 @@ describe('TasksController', () => {
       const error = new Error('Unexpected error');
       jest.spyOn(tasksService, 'create').mockRejectedValue(error);
 
-      await expect(tasksController.create(createTaskDto)).rejects.toThrow(error);
+      await expect(tasksController.create(createTaskDto, currentUser)).rejects.toThrow(error);
     });
   });
 

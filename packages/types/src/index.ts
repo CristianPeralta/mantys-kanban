@@ -47,6 +47,8 @@ export interface Task {
   deadline?: Date;
   assigneeId?: string;
   assignee?: Pick<User, 'id' | 'name' | 'email'>;
+  createdById?: string;
+  creator?: Pick<User, 'id' | 'name' | 'email'>;
   projectId: string;
   createdAt: Date;
   updatedAt: Date;

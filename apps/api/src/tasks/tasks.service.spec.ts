@@ -3,8 +3,9 @@ import { TasksService } from './tasks.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
-const assigneeInclude = {
+const taskInclude = {
   assignee: { select: { id: true, name: true, email: true } },
+  creator: { select: { id: true, name: true, email: true } },
 };
 
 const mockPrisma = {
@@ -36,18 +37,29 @@ describe('TasksService', () => {
   });
 
   describe('create', () => {
-    it('should call prisma.task.create with dto', async () => {
+    it('should call prisma.task.create with dto and createdById from the authenticated user', async () => {
       const dto = { title: 'Test', projectId: 'proj-1' };
-      const created = { id: '1', ...dto };
+      const created = { id: '1', ...dto, createdById: 'user-1', creator: { id: 'user-1' } };
       mockPrisma.task.create.mockResolvedValue(created);
 
-      const result = await service.create(dto as any);
+      const result = await service.create(dto as any, 'user-1');
 
       expect(mockPrisma.task.create).toHaveBeenCalledWith({
-        data: dto,
-        include: { assignee: { select: { id: true, name: true, email: true } } },
+        data: { ...dto, createdById: 'user-1' },
+        include: taskInclude,
       });
       expect(result).toEqual(created);
+    });
+
+    it('should override a forged createdById on the dto with the authenticated user id', async () => {
+      const dto = { title: 'Test', projectId: 'proj-1', createdById: 'attacker' } as any;
+      mockPrisma.task.create.mockResolvedValue({ id: '1' });
+
+      await service.create(dto, 'real-user');
+
+      expect(mockPrisma.task.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ createdById: 'real-user' }) }),
+      );
     });
   });
 
@@ -63,7 +75,7 @@ describe('TasksService', () => {
 
       expect(mockPrisma.task.findMany).toHaveBeenCalledWith({
         where: {},
-        include: assigneeInclude,
+        include: taskInclude,
       });
       expect(result).toEqual(tasks);
     });
@@ -76,7 +88,7 @@ describe('TasksService', () => {
 
       expect(mockPrisma.task.findMany).toHaveBeenCalledWith({
         where: { projectId: 'proj-1' },
-        include: assigneeInclude,
+        include: taskInclude,
       });
       expect(result).toEqual(tasks);
     });
@@ -91,7 +103,7 @@ describe('TasksService', () => {
 
       expect(mockPrisma.task.findUnique).toHaveBeenCalledWith({
         where: { id: '1' },
-        include: assigneeInclude,
+        include: taskInclude,
       });
       expect(result).toEqual(task);
     });

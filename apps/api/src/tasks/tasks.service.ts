@@ -8,24 +8,33 @@ import { Prisma } from '@prisma/client';
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateTaskDto) {
+  create(dto: CreateTaskDto, createdById: string) {
     return this.prisma.task.create({
-      data: dto,
-      include: { assignee: { select: { id: true, name: true, email: true } } },
+      data: { ...dto, createdById },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        creator: { select: { id: true, name: true, email: true } },
+      },
     });
   }
 
   findAll(projectId?: string) {
     return this.prisma.task.findMany({
       where: projectId ? { projectId } : {},
-      include: { assignee: { select: { id: true, name: true, email: true } } },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        creator: { select: { id: true, name: true, email: true } },
+      },
     });
   }
 
   findOne(id: string) {
     return this.prisma.task.findUnique({
       where: { id },
-      include: { assignee: { select: { id: true, name: true, email: true } } },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        creator: { select: { id: true, name: true, email: true } },
+      },
     });
   }
 

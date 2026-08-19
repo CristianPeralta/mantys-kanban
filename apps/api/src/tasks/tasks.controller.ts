@@ -16,6 +16,7 @@ import { TasksService } from './tasks.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
@@ -59,8 +60,11 @@ export class TasksController {
     description: 'Returns the created task',
   })
   @Post()
-  async create(@Body() body: CreateTaskDto) {
-    return this.taskService.create(body);
+  async create(
+    @Body() body: CreateTaskDto,
+    @CurrentUser() user: { id: string; email: string; role: string },
+  ) {
+    return this.taskService.create(body, user.id);
   }
 
   /**
