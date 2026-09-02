@@ -7,7 +7,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -19,9 +19,12 @@ const mockAuthService = {
 
 describe('AuthController', () => {
   let controller: AuthController;
+  const originalAllowRegistration = process.env.ALLOW_PUBLIC_REGISTRATION;
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    // Contención post-pentest: register() ahora es 403 salvo que se habilite explícitamente.
+    process.env.ALLOW_PUBLIC_REGISTRATION = 'true';
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -29,6 +32,10 @@ describe('AuthController', () => {
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
+  });
+
+  afterAll(() => {
+    process.env.ALLOW_PUBLIC_REGISTRATION = originalAllowRegistration;
   });
 
   it('should be defined', () => {
@@ -64,6 +71,13 @@ describe('AuthController', () => {
       await controller.register(dto);
 
       expect(mockAuthService.register).toHaveBeenCalledWith(dto);
+    });
+
+    it('should reject with 403 when ALLOW_PUBLIC_REGISTRATION is not "true"', () => {
+      process.env.ALLOW_PUBLIC_REGISTRATION = 'false';
+
+      expect(() => controller.register(dto)).toThrow(ForbiddenException);
+      expect(mockAuthService.register).not.toHaveBeenCalled();
     });
   });
 });

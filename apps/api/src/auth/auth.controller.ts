@@ -7,6 +7,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -22,9 +23,15 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User created' })
   @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 403, description: 'Public registration disabled' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   @Post('register')
   register(@Body() dto: CreateUserDto) {
+    // Contención post-pentest 2026-09-02: registro público cerrado por default.
+    // Ver /home/cristian/.claude/plans/nos-hicieron-un-pentest-partitioned-quilt.md
+    if (process.env.ALLOW_PUBLIC_REGISTRATION !== 'true') {
+      throw new ForbiddenException('Public registration is disabled');
+    }
     return this.authService.register(dto);
   }
 

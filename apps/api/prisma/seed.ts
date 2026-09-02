@@ -8,8 +8,16 @@ import * as bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
 async function main() {
-  const hashedOwner = await bcrypt.hash('password123', 10)
-  const hashedMember = await bcrypt.hash('password123', 10)
+  // Contención post-pentest 2026-09-02: el seed traía password123 hardcodeado
+  // y se corrio en produccion. Nunca correrlo ahi -- creaba un OWNER de facto.
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Seed skipped: NODE_ENV=production. Crear usuarios via POST /users como OWNER.')
+    return
+  }
+
+  const seedPassword = process.env.SEED_PASSWORD ?? 'password123'
+  const hashedOwner = await bcrypt.hash(seedPassword, 10)
+  const hashedMember = await bcrypt.hash(seedPassword, 10)
 
   await prisma.user.upsert({
     where: { email: 'owner@mantys.dev' },
@@ -33,7 +41,7 @@ async function main() {
     },
   })
 
-  console.log('Seed complete — owner@mantys.dev / member@mantys.dev (password: password123)')
+  console.log(`Seed complete — owner@mantys.dev / member@mantys.dev (password: ${seedPassword})`)
 }
 
 main()

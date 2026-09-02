@@ -56,9 +56,14 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserDto) {
     try {
+      // Contención post-pentest 2026-09-02: `data: dto` guardaba dto.password
+      // en texto plano, pisando el hash bcrypt existente. Hashear si viene.
+      const data = dto.password
+        ? { ...dto, password: await bcrypt.hash(dto.password, 10) }
+        : dto;
       return await this.prisma.user.update({
         where: { id },
-        data: dto,
+        data,
         select: USER_SELECT,
       });
     } catch (e) {

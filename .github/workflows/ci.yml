@@ -58,3 +58,4 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mantys_kanban_test
           JWT_SECRET: test-secret
+          ALLOW_PUBLIC_REGISTRATION: 'true'
